@@ -18,8 +18,9 @@ namespace Esport_OLA1
             // MySQL 
             DBActionsMySQL dBActionsMySQL = new DBActionsMySQL();
             // dBActionsMySQL.GetPlayerUsername(3);
-            //dBActionsMySQL.JoinTournament(11, 1);
-            dBActionsMySQL.SubmitMatchResult(8, 1);
+            // dBActionsMySQL.JoinTournament(11, 1);
+            // dBActionsMySQL.SubmitMatchResult(8, 1);
+            dBActionsMySQL.SubmitMatchResult(1, 2);
 
 
         }
