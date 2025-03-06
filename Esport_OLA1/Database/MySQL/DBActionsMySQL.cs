@@ -40,5 +40,100 @@ namespace Esport_OLA1.Database.MySQL
 
             Console.WriteLine($"Username: {username}");
         }
+
+        public void SubmitMatchResult(int matchId, int winnerId)
+        {
+            try
+            {
+                // Get the MySQL connection instance
+                using (var connection = DBConnectionMySQL.Instance().Connection)
+                {
+                    // Open the connection if it's not already open
+                    if (connection.State != System.Data.ConnectionState.Open)
+                    {
+                        connection.Open();
+                    }
+
+                    // Call the stored procedure
+                    using (var command = new MySqlCommand("submitMatchResult", connection))
+                    {
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                        // Add parameters
+                        command.Parameters.AddWithValue("@matchId", matchId);
+                        command.Parameters.AddWithValue("@winnerId", winnerId);
+
+                        // Execute the stored procedure
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                Console.WriteLine(reader["message"].ToString()); // Read success message
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("MySQL error: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+            finally
+            {
+                DBConnectionMySQL.Instance().CloseConnection();
+            }
+        }
+        public void JoinTournament(int playerId, int tournamentId)
+        {
+            try
+            {
+                // Get the MySQL connection instance
+                using (var connection = DBConnectionMySQL.Instance().Connection)
+                {
+                    // Open the connection if it's not already open
+                    if (connection.State != System.Data.ConnectionState.Open)
+                    {
+                        connection.Open();
+                    }
+
+                    // Call the stored procedure
+                    using (var command = new MySqlCommand("joinTournament", connection))
+                    {
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                        // Add parameters
+                        command.Parameters.AddWithValue("@playerId", playerId);
+                        command.Parameters.AddWithValue("@tournamentId", tournamentId);
+
+                        // Execute the stored procedure
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                Console.WriteLine(reader["message"].ToString()); // Read success message
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("MySQL error: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+            finally
+            {
+                DBConnectionMySQL.Instance().CloseConnection();
+            }
+        }
+
+
     }
 }

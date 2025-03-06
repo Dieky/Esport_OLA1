@@ -10,16 +10,17 @@ namespace Esport_OLA1
         static void Main(string[] args)
         {
             // Microsoft SQL
-            DBActions dBActions = new DBActions();
-            dBActions.GetPlayerUsername(3);
+            // DBActions dBActions = new DBActions();
+            // dBActions.GetPlayerUsername(3);
 
 
 
             // MySQL 
             DBActionsMySQL dBActionsMySQL = new DBActionsMySQL();
-            dBActionsMySQL.GetPlayerUsername(3);
+            // dBActionsMySQL.GetPlayerUsername(3);
+            //dBActionsMySQL.JoinTournament(11, 1);
+            dBActionsMySQL.SubmitMatchResult(8, 1);
 
-            
 
         }
     }
