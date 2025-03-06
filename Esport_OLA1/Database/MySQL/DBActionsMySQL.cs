@@ -203,10 +203,6 @@ namespace Esport_OLA1.Database.MySQL
             {
                 Console.WriteLine("Error: " + ex.Message);
             }
-            finally
-            {
-                DBConnectionMySQL.Instance().CloseConnection();
-            }
         }
         private void UpdatePlayerRankings(MySqlConnection connection, int winnerId, int loserId)
         {
@@ -236,7 +232,186 @@ namespace Esport_OLA1.Database.MySQL
             }
         }
 
+        // Method using prepared statements for joining tournament
+        public void JoinTournamentPrepared(int playerId, int tournamentId)
+        {
+            try
+            {
+                var connection = DBConnectionMySQL.Instance().Connection;
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    connection.Open();
+                }
 
+                // Check if tournament exists and has space
+                string checkQuery = @"SELECT COUNT(*) as count, t.max_players 
+                                    FROM Tournament_Registrations tr 
+                                    RIGHT JOIN Tournaments t ON t.tournament_id = @tournamentId 
+                                    WHERE tr.FK_tournament_registrations_tournament_ID = @tournamentId";
 
+                using (var checkCmd = new MySqlCommand(checkQuery, connection))
+                {
+                    checkCmd.Parameters.AddWithValue("@tournamentId", tournamentId);
+                    using (var reader = checkCmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int currentPlayers = Convert.ToInt32(reader["count"]);
+                            int maxPlayers = Convert.ToInt32(reader["max_players"]);
+                            if (currentPlayers >= maxPlayers)
+                            {
+                                Console.WriteLine("Tournament is full!");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Tournament not found!");
+                            return;
+                        }
+                    }
+                }
+
+                // Check if player is already registered
+                string checkPlayerQuery = @"SELECT COUNT(*) 
+                                          FROM Tournament_Registrations 
+                                          WHERE FK_tournament_registrations_player_ID = @playerId 
+                                          AND FK_tournament_registrations_tournament_ID = @tournamentId";
+
+                using (var checkPlayerCmd = new MySqlCommand(checkPlayerQuery, connection))
+                {
+                    checkPlayerCmd.Parameters.AddWithValue("@playerId", playerId);
+                    checkPlayerCmd.Parameters.AddWithValue("@tournamentId", tournamentId);
+                    int existingRegistrations = Convert.ToInt32(checkPlayerCmd.ExecuteScalar());
+                    
+                    if (existingRegistrations > 0)
+                    {
+                        Console.WriteLine("Player already registered for this tournament!");
+                        return;
+                    }
+                }
+
+                // Register player for tournament
+                string insertQuery = @"INSERT INTO Tournament_Registrations 
+                                     (FK_tournament_registrations_player_ID, FK_tournament_registrations_tournament_ID) 
+                                     VALUES (@playerId, @tournamentId)";
+
+                using (var cmd = new MySqlCommand(insertQuery, connection))
+                {
+                    cmd.Parameters.AddWithValue("@playerId", playerId);
+                    cmd.Parameters.AddWithValue("@tournamentId", tournamentId);
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Successfully joined tournament!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to join tournament.");
+                    }
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("MySQL error: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+        }
+
+        // Method to reset database to original state
+        public void ResetDatabase()
+        {
+            try
+            {
+                var connection = DBConnectionMySQL.Instance().Connection;
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    connection.Open();
+                }
+
+                // Clear existing data
+                string[] clearQueries = {
+                    "DELETE FROM Tournament_Registrations;",
+                    "DELETE FROM Matches;",
+                    "DELETE FROM Players;",
+                    "DELETE FROM Tournaments;",
+                    "ALTER TABLE Players AUTO_INCREMENT = 1;",
+                    "ALTER TABLE Tournaments AUTO_INCREMENT = 1;",
+                    "ALTER TABLE Tournament_Registrations AUTO_INCREMENT = 1;",
+                    "ALTER TABLE Matches AUTO_INCREMENT = 1;"
+                };
+
+                foreach (string query in clearQueries)
+                {
+                    using (var cmd = new MySqlCommand(query, connection))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                // Reinsert original data
+                string[] insertQueries = {
+                    @"INSERT INTO Players (username, email) 
+                    VALUES 
+                    ('Patrick', 'dieky91@gmail.com'),
+                    ('Frederik', 'frederikTheWinner@gmail.com'),
+                    ('William', 'WilliamTheKing@gmail.com'),
+                    ('Emilio', 'emilioNotMarriedYet@gmail.com'),
+                    ('Larsen', 'larsenPro@gmail.com'),
+                    ('Sophia', 'sophiaGamer@gmail.com'),
+                    ('Benjamin', 'benjiTheChamp@gmail.com'),
+                    ('Isabella', 'isabellaQueen@gmail.com'),
+                    ('Noah', 'noahWinner@gmail.com'),
+                    ('Olivia', 'oliviaMaster@gmail.com');",
+
+                    @"INSERT INTO Tournaments (tournament_name, game, max_players, start_date, created_at) 
+                    VALUES 
+                    ('DreamHack Summer 2025', 'CS:GO', 32, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                    ('ESL One 2025', 'Dota 2', 32, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                    ('Katowice 2025', 'Starcraft 2', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                    ('IEM Cologne 2025', 'Fifa', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);",
+
+                    @"INSERT INTO Tournament_Registrations (FK_tournament_registrations_player_ID, FK_tournament_registrations_tournament_ID) 
+                    VALUES 
+                    (1,1), (2,1), (3,1), (4,1),
+                    (1,2), (2,2), (3,2), (4,2),
+                    (5,1), (6,1), (7,1), (8,1), 
+                    (5,2), (6,2), (7,2), (8,2), 
+                    (9,3), (10,3), (1,3), (2,3), 
+                    (9,4), (10,4), (3,4), (4,4);",
+
+                    @"INSERT INTO Matches (match_date, FK_matches_tournament_id, FK_matches_player1_id, FK_matches_player2_id) 
+                    VALUES 
+                    (STR_TO_DATE('25-03-2025', '%d-%m-%Y'), 1, 1, 2),
+                    (STR_TO_DATE('25-03-2025', '%d-%m-%Y'), 1, 3, 4),
+                    (STR_TO_DATE('26-03-2025', '%d-%m-%Y'), 1, 5, 6),
+                    (STR_TO_DATE('26-03-2025', '%d-%m-%Y'), 1, 7, 8),
+                    (STR_TO_DATE('27-03-2025', '%d-%m-%Y'), 2, 1, 3),
+                    (STR_TO_DATE('27-03-2025', '%d-%m-%Y'), 2, 2, 4);"
+                };
+
+                foreach (string query in insertQueries)
+                {
+                    using (var cmd = new MySqlCommand(query, connection))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                Console.WriteLine("Database reset to original state successfully!");
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("MySQL error during reset: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error during reset: " + ex.Message);
+            }
+        }
     }
 }
