@@ -15,7 +15,7 @@ namespace Esport_OLA1.Database.MySQL
         // Private constructor to prevent instantiation from outside
         private DBConnectionMySQL()
         {
-            _connectionString = "server=your_server;database=your_database;user=your_username;password=your_password;";
+            _connectionString = "server=127.0.0.1;port=3306;database=esport_ola1;user=root;password=password;";
             _connection = new MySqlConnection(_connectionString);
         }
 
