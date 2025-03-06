@@ -1,4 +1,4 @@
-﻿using Esport_OLA1.Database.MSSQL;
+using Esport_OLA1.Database.MSSQL;
 using Esport_OLA1.Database.MySQL;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
