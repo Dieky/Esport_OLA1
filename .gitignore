@@ -3,7 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-Esport_OLA1/Database/MySQL/DBConnectionMysql.cs
+Esport_OLA1/Database/MySQL/DBConnectionMySQL.cs
 
 
 # User-specific files
