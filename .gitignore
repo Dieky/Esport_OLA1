@@ -5,6 +5,10 @@
 
 Esport_OLA1/Database/MySQL/DBConnectionMySQL.cs
 
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
 
 # User-specific files
 *.rsuser
