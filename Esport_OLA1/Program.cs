@@ -9,30 +9,42 @@ namespace Esport_OLA1
     {
         static void Main(string[] args)
         {
-            // Microsoft SQL
-            // DBActions dBActions = new DBActions();
-            // dBActions.GetPlayerUsername(3);
+            string databaseType = "MSSQL";
 
-
-
-            // MySQL 
-            DBActionsMySQL dBActionsMySQL = new DBActionsMySQL();
-            
-            try
+            if(databaseType == "MSSQL")
             {
-                Console.WriteLine("Resetting database to original state...");
-                dBActionsMySQL.ResetDatabase();
-                
-                Console.WriteLine("\nTesting tournament registration...");
-                dBActionsMySQL.JoinTournamentPrepared(5, 3);
+                DBActions dbactions = new DBActions();
 
-                // Add a small delay to see the output clearly
-                System.Threading.Thread.Sleep(1000);
+                //dbactions.JoinTournament(3, 3);
+                //dbactions.JoinTournamentPreparedStatements(7, 4);
+                //dbactions.SubmitMatchResult(1, 1);
+                //dbactions.SubmitMatchResultPreparedStatements(1, 2);
+                //dbactions.RecreateDatabase();
             }
-            finally
+
+
+            if(databaseType == "MYSQL")
             {
-                // Close the connection after all operations are complete
-                DBConnectionMySQL.Instance().CloseConnection();
+
+                // MySQL 
+                DBActionsMySQL dBActionsMySQL = new DBActionsMySQL();
+            
+                try
+                {
+                    Console.WriteLine("Resetting database to original state...");
+                    dBActionsMySQL.ResetDatabase();
+                
+                    Console.WriteLine("\nTesting tournament registration...");
+                    dBActionsMySQL.JoinTournamentPrepared(5, 3);
+
+                    // Add a small delay to see the output clearly
+                    System.Threading.Thread.Sleep(1000);
+                }
+                finally
+                {
+                    // Close the connection after all operations are complete
+                    DBConnectionMySQL.Instance().CloseConnection();
+                }
             }
         }
     }
